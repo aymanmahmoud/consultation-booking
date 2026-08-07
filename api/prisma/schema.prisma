@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  client
+  consultant
+  admin
+}
+
+enum AppointmentStatus {
+  confirmed
+  cancelled
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password_hash String
+  role          Role
+  created_at    DateTime @default(now())
+
+  consultant_profile ConsultantProfile?
+  appointments        Appointment[]
+
+  @@map("users")
+}
+
+model ConsultantProfile {
+  id        String   @id @default(uuid())
+  user_id   String   @unique
+  headline  String?
+  bio       String?
+  price     Decimal? @db.Decimal(10, 2)
+  is_active Boolean  @default(true)
+
+  user          User                   @relation(fields: [user_id], references: [id])
+  specialties   ConsultantSpecialty[]
+  working_hours WorkingHours[]
+  time_off      TimeOff[]
+  appointments  Appointment[]
+
+  @@map("consultant_profiles")
+}
+
+model Specialty {
+  id   String @id @default(uuid())
+  name String @unique
+
+  consultants ConsultantSpecialty[]
+
+  @@map("specialties")
+}
+
+model ConsultantSpecialty {
+  consultant_id String
+  specialty_id  String
+
+  consultant ConsultantProfile @relation(fields: [consultant_id], references: [id])
+  specialty  Specialty         @relation(fields: [specialty_id], references: [id])
+
+  @@id([consultant_id, specialty_id])
+  @@map("consultant_specialties")
+}
+
+model WorkingHours {
+  id            String   @id @default(uuid())
+  consultant_id String
+  day_of_week   Int
+  start_time    DateTime @db.Time()
+  end_time      DateTime @db.Time()
+
+  consultant ConsultantProfile @relation(fields: [consultant_id], references: [id])
+
+  @@map("working_hours")
+}
+
+model TimeOff {
+  id            String   @id @default(uuid())
+  consultant_id String
+  starts_at     DateTime
+  ends_at       DateTime
+
+  consultant ConsultantProfile @relation(fields: [consultant_id], references: [id])
+
+  @@map("time_off")
+}
+
+model Appointment {
+  id            String            @id @default(uuid())
+  client_id     String
+  consultant_id String
+  starts_at     DateTime
+  ends_at       DateTime
+  status        AppointmentStatus @default(confirmed)
+  meeting_link  String
+  cancelled_at  DateTime?
+  cancelled_by  String?
+  created_at    DateTime          @default(now())
+
+  client     User              @relation(fields: [client_id], references: [id])
+  consultant ConsultantProfile @relation(fields: [consultant_id], references: [id])
+
+  @@index([consultant_id, starts_at])
+  @@map("appointments")
+}

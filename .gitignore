@@ -1,0 +1,7 @@
+# Agent Skills
+skills/
+skills-lock.json
+.agents/skills/
+.claude/skills/
+.windsurf/skills/
+.gemini/skills/
