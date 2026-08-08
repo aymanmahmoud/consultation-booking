@@ -1,0 +1,48 @@
+<header class="navbar">
+  <div class="container navbar-container">
+    <a routerLink="/" class="logo">
+      <div class="logo-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <span class="logo-text">Medi<span class="highlight">Consult</span></span>
+    </a>
+
+    <nav class="nav-links">
+      <a routerLink="/consultants" routerLinkActive="active" class="nav-link">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+        </svg>
+        Browse Consultants
+      </a>
+
+      <ng-container *ngIf="authService.currentUser() as user">
+        <a routerLink="/appointments" routerLinkActive="active" class="nav-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>
+          </svg>
+          My Appointments
+        </a>
+      </ng-container>
+    </nav>
+
+    <div class="auth-actions">
+      <ng-container *ngIf="authService.currentUser() as user; else guestTpl">
+        <div class="user-badge">
+          <div class="avatar">{{ user.email[0].toUpperCase() }}</div>
+          <div class="user-info">
+            <span class="email">{{ user.email }}</span>
+            <span class="role-pill">{{ user.role }}</span>
+          </div>
+        </div>
+        <button (click)="logout()" class="btn btn-outline btn-sm">Sign Out</button>
+      </ng-container>
+
+      <ng-template #guestTpl>
+        <a routerLink="/login" class="btn btn-secondary">Sign In</a>
+        <a routerLink="/register" class="btn btn-primary">Get Started</a>
+      </ng-template>
+    </div>
+  </div>
+</header>

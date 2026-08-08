@@ -1,0 +1,106 @@
+<div class="my-appointments-page container">
+  <div class="page-header">
+    <h2>My Scheduled Appointments</h2>
+    <p>Manage your upcoming consultations and review booking history</p>
+  </div>
+
+  <!-- Tabs Navigation -->
+  <div class="tabs-nav">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'upcoming'"
+      (click)="activeTab = 'upcoming'"
+    >
+      Upcoming Sessions
+    </button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'past'"
+      (click)="activeTab = 'past'"
+    >
+      Past & Cancelled
+    </button>
+  </div>
+
+  <!-- Error Banner -->
+  <div *ngIf="cancelError" class="error-banner">
+    {{ cancelError }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading your appointments...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredAppointments.length === 0" class="empty-state card">
+    <div class="empty-icon">📅</div>
+    <h3>No {{ activeTab }} appointments</h3>
+    <p *ngIf="activeTab === 'upcoming'">You have no upcoming consultations scheduled.</p>
+    <p *ngIf="activeTab === 'past'">No past or cancelled appointments found.</p>
+    <a routerLink="/consultants" class="btn btn-primary" style="margin-top: 16px;">
+      Browse Consultants & Book
+    </a>
+  </div>
+
+  <!-- Appointments List -->
+  <div *ngIf="!isLoading && filteredAppointments.length > 0" class="appointments-list">
+    <div *ngFor="let apt of filteredAppointments" class="appointment-card card animate-fade-in">
+      <div class="apt-header">
+        <div class="apt-date-badge">
+          <span class="month">{{ apt.starts_at | date:'MMM' }}</span>
+          <span class="day">{{ apt.starts_at | date:'dd' }}</span>
+        </div>
+
+        <div class="apt-main">
+          <div class="apt-title-row">
+            <h3>Consultation Session</h3>
+            <span
+              class="badge"
+              [class.badge-accent]="apt.status === 'confirmed'"
+              [class.badge-danger]="apt.status === 'cancelled'"
+            >
+              {{ apt.status | uppercase }}
+            </span>
+          </div>
+
+          <div class="apt-time-info">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span>{{ apt.starts_at | date:'fullDate' }} • {{ formatTime(apt.starts_at) }} - {{ formatTime(apt.ends_at) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="apt-body">
+        <div class="info-block" *ngIf="apt.consultant">
+          <span class="label">Consultant:</span>
+          <strong>{{ apt.consultant.user?.email || 'Consultant' }}</strong>
+        </div>
+
+        <div class="info-block" *ngIf="apt.meeting_link">
+          <span class="label">Video Link:</span>
+          <a [href]="apt.meeting_link" target="_blank" class="meeting-url">
+            {{ apt.meeting_link }} ↗
+          </a>
+        </div>
+      </div>
+
+      <div class="apt-actions" *ngIf="apt.status === 'confirmed'">
+        <a [href]="apt.meeting_link" target="_blank" class="btn btn-primary btn-sm">
+          Join Video Call
+        </a>
+        <button
+          (click)="cancelAppointment(apt.id)"
+          [disabled]="cancellingId === apt.id"
+          class="btn btn-danger btn-sm"
+        >
+          <span *ngIf="cancellingId !== apt.id">Cancel Appointment</span>
+          <span *ngIf="cancellingId === apt.id">Cancelling...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

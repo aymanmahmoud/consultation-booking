@@ -1,0 +1,73 @@
+<div class="auth-container">
+  <div class="auth-card card animate-fade-in">
+    <div class="auth-header">
+      <h2>Create Account</h2>
+      <p>Join MediConsult to start booking or offering consultations</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-banner">
+      {{ errorMessage }}
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="auth-form">
+      <div class="role-selector">
+        <button
+          type="button"
+          class="role-option"
+          [class.active]="role === 'client'"
+          (click)="role = 'client'"
+        >
+          <div class="role-icon">👤</div>
+          <span class="role-label">I'm a Client</span>
+          <span class="role-sub">Looking to book sessions</span>
+        </button>
+
+        <button
+          type="button"
+          class="role-option"
+          [class.active]="role === 'consultant'"
+          (click)="role = 'consultant'"
+        >
+          <div class="role-icon">🩺</div>
+          <span class="role-label">I'm a Consultant</span>
+          <span class="role-sub">Offering expert consultations</span>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          class="input-field"
+          placeholder="name@example.com"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password (8+ characters)</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          class="input-field"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="btn btn-primary btn-block">
+        <span *ngIf="!isLoading">Create Account</span>
+        <span *ngIf="isLoading">Creating Account...</span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Already have an account? <a routerLink="/login">Sign In</a></p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,90 @@
+<div class="consultants-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-content">
+      <h1 class="hero-title">Find & Book Top Expert Consultants</h1>
+      <p class="hero-sub">Select your specialty, choose a 60-minute time slot, and get instant advice</p>
+
+      <div class="search-bar card">
+        <div class="search-input-wrapper">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+            placeholder="Search by name or keyword..."
+            class="search-input"
+          />
+        </div>
+        <button (click)="onSearch()" class="btn btn-primary">Search</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filter & Grid Section -->
+  <div class="container main-content">
+    <div class="filter-pills">
+      <button
+        class="filter-pill"
+        [class.active]="selectedSpecialtyId === null"
+        (click)="selectSpecialty(null)"
+      >
+        All Specialties
+      </button>
+
+      <button
+        *ngFor="let s of specialties"
+        class="filter-pill"
+        [class.active]="selectedSpecialtyId === s.id"
+        (click)="selectSpecialty(s.id)"
+      >
+        {{ s.name }}
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Finding available consultants...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!isLoading && consultants.length === 0" class="empty-state card">
+      <div class="empty-icon">🔍</div>
+      <h3>No consultants found</h3>
+      <p>Try searching for a different keyword or specialty</p>
+    </div>
+
+    <!-- Consultants Grid -->
+    <div *ngIf="!isLoading && consultants.length > 0" class="consultants-grid">
+      <div *ngFor="let c of consultants" class="consultant-card card animate-fade-in">
+        <div class="card-header">
+          <div class="consultant-avatar">
+            {{ c.user?.email?.[0]?.toUpperCase() || 'C' }}
+          </div>
+          <div class="consultant-basic">
+            <h3 class="consultant-name">{{ c.user?.email?.split('@')?.[0] | titlecase }}</h3>
+            <span class="price-tag">${{ c.price || 0 }}/hr</span>
+          </div>
+        </div>
+
+        <p class="headline">{{ c.headline || 'Professional Consultant' }}</p>
+        <p class="bio">{{ c.bio || 'Available for 1-on-1 consultations.' }}</p>
+
+        <div class="specialties-list">
+          <span *ngFor="let item of c.specialties" class="badge badge-primary">
+            {{ item.specialty.name }}
+          </span>
+        </div>
+
+        <div class="card-footer">
+          <a [routerLink]="['/consultants', c.id]" class="btn btn-primary btn-block">
+            View Availability & Book
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

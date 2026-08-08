@@ -1,0 +1,134 @@
+<div class="consultant-detail-page container">
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading consultant profile...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && consultant">
+    <div class="detail-layout">
+      <!-- Left Column: Consultant Profile Card -->
+      <div class="profile-card card">
+        <div class="profile-header">
+          <div class="avatar-large">
+            {{ consultant.user?.email?.[0]?.toUpperCase() || 'C' }}
+          </div>
+          <div>
+            <h2>{{ consultant.user?.email?.split('@')?.[0] | titlecase }}</h2>
+            <span class="price-tag">${{ consultant.price || 0 }} / 60-min session</span>
+          </div>
+        </div>
+
+        <div class="profile-section">
+          <h4>Headline</h4>
+          <p>{{ consultant.headline || 'Professional Consultant' }}</p>
+        </div>
+
+        <div class="profile-section">
+          <h4>Biography</h4>
+          <p class="bio-text">{{ consultant.bio || 'No biography available.' }}</p>
+        </div>
+
+        <div class="profile-section">
+          <h4>Specialties</h4>
+          <div class="specialties-flex">
+            <span *ngFor="let item of consultant.specialties" class="badge badge-primary">
+              {{ item.specialty.name }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Availability Calendar & Slot Picker -->
+      <div class="booking-card card">
+        <h3>Select a Date & Time Slot</h3>
+        <p class="subtitle">Sessions are strictly 60 minutes long and start on the hour.</p>
+
+        <!-- Date Selector Pills -->
+        <div class="days-selector">
+          <button
+            *ngFor="let day of availableDays"
+            class="day-pill"
+            [class.active]="selectedDate === day.dateIso"
+            (click)="loadAvailability(day.dateIso)"
+          >
+            <span class="day-name">{{ day.dayName }}</span>
+            <span class="day-label">{{ day.label }}</span>
+          </button>
+        </div>
+
+        <!-- Slots Container -->
+        <div class="slots-container">
+          <div *ngIf="isLoadingSlots" class="slots-loading">
+            <div class="spinner"></div>
+            <p>Fetching available slots...</p>
+          </div>
+
+          <div *ngIf="!isLoadingSlots && availableSlots.length === 0" class="no-slots">
+            <p>📅 No available time slots on this date.</p>
+            <span class="subtext">Please select another date above.</span>
+          </div>
+
+          <div *ngIf="!isLoadingSlots && availableSlots.length > 0" class="slots-grid">
+            <button
+              *ngFor="let slot of availableSlots"
+              class="slot-btn"
+              [class.active]="selectedSlot === slot"
+              (click)="selectSlot(slot)"
+            >
+              {{ formatTime(slot) }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Booking Error Banner -->
+        <div *ngIf="bookingError" class="error-banner">
+          {{ bookingError }}
+        </div>
+
+        <!-- Booking Action Button -->
+        <div class="booking-footer" *ngIf="selectedSlot">
+          <div class="selected-summary">
+            <span>Selected Session:</span>
+            <strong>{{ formatTime(selectedSlot) }}</strong>
+          </div>
+
+          <button
+            (click)="confirmBooking()"
+            [disabled]="isBooking"
+            class="btn btn-primary btn-block btn-lg"
+          >
+            <span *ngIf="!isBooking">Confirm & Book Session</span>
+            <span *ngIf="isBooking">Booking Session...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Confirmation Modal -->
+  <div *ngIf="confirmedAppointment" class="modal-backdrop">
+    <div class="modal-card card animate-fade-in">
+      <div class="modal-icon">🎉</div>
+      <h2>Booking Confirmed!</h2>
+      <p class="modal-desc">Your 60-minute consultation has been scheduled successfully.</p>
+
+      <div class="appointment-details">
+        <div class="detail-row">
+          <span>Date & Time:</span>
+          <strong>{{ confirmedAppointment.starts_at | date:'fullDate' }} at {{ formatTime(confirmedAppointment.starts_at) }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>Video Meeting Link:</span>
+          <a [href]="confirmedAppointment.meeting_link" target="_blank" class="meeting-link">
+            {{ confirmedAppointment.meeting_link }}
+          </a>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <a routerLink="/appointments" class="btn btn-primary btn-block">View My Appointments</a>
+      </div>
+    </div>
+  </div>
+</div>
