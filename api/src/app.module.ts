@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { AvailabilityModule } from './availability/availability.module';
 import { ConsultantsModule } from './consultants/consultants.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SpecialtiesModule } from './specialties/specialties.module';
@@ -14,6 +15,7 @@ import { SpecialtiesModule } from './specialties/specialties.module';
     AuthModule,
     SpecialtiesModule,
     ConsultantsModule,
+    AvailabilityModule,
   ],
   controllers: [AppController],
   providers: [AppService],
