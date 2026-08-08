@@ -24,6 +24,23 @@
           </svg>
           My Appointments
         </a>
+
+        <!-- Consultant Links -->
+        <ng-container *ngIf="user.role === 'consultant'">
+          <a routerLink="/consultants/me/schedule" routerLinkActive="active" class="nav-link">
+            📅 Manage Schedule
+          </a>
+          <a routerLink="/consultants/me/profile" routerLinkActive="active" class="nav-link">
+            ⚙️ Edit Profile
+          </a>
+        </ng-container>
+
+        <!-- Admin Links -->
+        <ng-container *ngIf="user.role === 'admin'">
+          <a routerLink="/admin/specialties" routerLinkActive="active" class="nav-link">
+            🏷️ Manage Specialties
+          </a>
+        </ng-container>
       </ng-container>
     </nav>
 

@@ -1,0 +1,122 @@
+<div class="schedule-page container">
+  <div class="page-header">
+    <h2>Manage Schedule & Availability</h2>
+    <p>Set your weekly working hours and block out time off exceptions</p>
+  </div>
+
+  <div class="schedule-grid">
+    <!-- Weekly Working Hours Section -->
+    <div class="card schedule-card">
+      <div class="card-title-row">
+        <h3>Weekly Working Hours</h3>
+        <p>Define the hours you are available for client consultations</p>
+      </div>
+
+      <div *ngIf="hoursMessage" class="success-banner">{{ hoursMessage }}</div>
+      <div *ngIf="hoursError" class="error-banner">{{ hoursError }}</div>
+
+      <div *ngIf="isLoadingHours" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading schedule...</p>
+      </div>
+
+      <div *ngIf="!isLoadingHours" class="days-list">
+        <div *ngFor="let day of days" class="day-row" [class.disabled]="!day.enabled">
+          <label class="toggle-wrapper">
+            <input type="checkbox" [(ngModel)]="day.enabled" />
+            <span class="day-name">{{ day.day_name }}</span>
+          </label>
+
+          <div class="time-inputs" *ngIf="day.enabled">
+            <select [(ngModel)]="day.start_time" class="select-field">
+              <option *ngFor="let t of timeOptions" [value]="t">{{ t }}</option>
+            </select>
+            <span class="sep">to</span>
+            <select [(ngModel)]="day.end_time" class="select-field">
+              <option *ngFor="let t of timeOptions" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="off-label" *ngIf="!day.enabled">
+            <span>Unavailable / Day Off</span>
+          </div>
+        </div>
+
+        <div class="card-actions">
+          <button (click)="saveWorkingHours()" [disabled]="isSavingHours" class="btn btn-primary">
+            <span *ngIf="!isSavingHours">Save Weekly Schedule</span>
+            <span *ngIf="isSavingHours">Saving...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time Off Exceptions Section -->
+    <div class="card time-off-card">
+      <div class="card-title-row">
+        <h3>Time Off & Vacation Blocks</h3>
+        <p>Block specific date ranges from your public availability</p>
+      </div>
+
+      <div *ngIf="timeOffError" class="error-banner">{{ timeOffError }}</div>
+
+      <!-- Form to Add Time Off -->
+      <form (ngSubmit)="addTimeOff()" class="time-off-form">
+        <div class="form-group">
+          <label>Starts At</label>
+          <input
+            type="datetime-local"
+            [(ngModel)]="newTimeOffStart"
+            name="newTimeOffStart"
+            class="input-field"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Ends At</label>
+          <input
+            type="datetime-local"
+            [(ngModel)]="newTimeOffEnd"
+            name="newTimeOffEnd"
+            class="input-field"
+            required
+          />
+        </div>
+
+        <button type="submit" [disabled]="isAddingTimeOff" class="btn btn-secondary btn-block">
+          <span *ngIf="!isAddingTimeOff">+ Add Time Off Block</span>
+          <span *ngIf="isAddingTimeOff">Adding Block...</span>
+        </button>
+      </form>
+
+      <!-- Active Time Off List -->
+      <div class="time-off-list">
+        <h4>Active Time Off Entries</h4>
+
+        <div *ngIf="isLoadingTimeOff" class="loading-state">
+          <div class="spinner"></div>
+        </div>
+
+        <div *ngIf="!isLoadingTimeOff && timeOffList.length === 0" class="empty-time-off">
+          <p>🌴 No upcoming time off blocks recorded.</p>
+        </div>
+
+        <div *ngIf="!isLoadingTimeOff && timeOffList.length > 0" class="time-off-items">
+          <div *ngFor="let item of timeOffList" class="time-off-item">
+            <div class="dates-info">
+              <span class="range">
+                {{ item.starts_at | date:'mediumDate' }} {{ item.starts_at | date:'shortTime' }}
+                ➔
+                {{ item.ends_at | date:'mediumDate' }} {{ item.ends_at | date:'shortTime' }}
+              </span>
+            </div>
+            <button (click)="deleteTimeOff(item.id)" class="btn btn-danger btn-sm" title="Remove Block">
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

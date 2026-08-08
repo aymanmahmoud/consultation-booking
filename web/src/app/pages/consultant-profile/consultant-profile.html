@@ -1,0 +1,82 @@
+<div class="profile-editor-page container">
+  <div class="page-header">
+    <h2>Edit Consultant Profile & Specialties</h2>
+    <p>Update your public headline, bio, hourly rate, and assigned specialties</p>
+  </div>
+
+  <div class="profile-card card">
+    <div *ngIf="successMessage" class="success-banner">{{ successMessage }}</div>
+    <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your profile...</p>
+    </div>
+
+    <form *ngIf="!isLoading" (ngSubmit)="onSubmit()" class="profile-form">
+      <div class="form-group">
+        <label for="headline">Professional Headline</label>
+        <input
+          type="text"
+          id="headline"
+          name="headline"
+          [(ngModel)]="headline"
+          class="input-field"
+          placeholder="e.g. Senior Career Coach & Resume Specialist"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="price">Hourly Session Fee ($ / 60 min)</label>
+        <input
+          type="number"
+          id="price"
+          name="price"
+          [(ngModel)]="price"
+          class="input-field"
+          placeholder="45"
+          min="0"
+          step="5"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="bio">Biography / Experience Summary</label>
+        <textarea
+          id="bio"
+          name="bio"
+          [(ngModel)]="bio"
+          rows="4"
+          class="input-field textarea-field"
+          placeholder="Share your background, experience, and what clients can expect during a session..."
+        ></textarea>
+      </div>
+
+      <!-- Specialties Selection Section -->
+      <div class="specialties-section">
+        <label class="section-label">Select Your Specialties</label>
+        <p class="section-sub">Clients can filter and find you based on these specialties</p>
+
+        <div class="specialties-pills">
+          <button
+            type="button"
+            *ngFor="let s of allSpecialties"
+            class="specialty-pill"
+            [class.active]="isSpecialtySelected(s.id)"
+            (click)="toggleSpecialty(s.id)"
+          >
+            <span class="check-icon" *ngIf="isSpecialtySelected(s.id)">✓</span>
+            {{ s.name }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="isSaving" class="btn btn-primary btn-lg">
+          <span *ngIf="!isSaving">Save Profile Changes</span>
+          <span *ngIf="isSaving">Saving Profile...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

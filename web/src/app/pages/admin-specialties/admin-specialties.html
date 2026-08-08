@@ -1,0 +1,72 @@
+<div class="admin-specialties-page container">
+  <div class="page-header">
+    <h2>Manage Specialties Catalogue</h2>
+    <p>Admin panel to add, edit, or remove consultant specialties</p>
+  </div>
+
+  <div class="admin-grid">
+    <!-- Add Specialty Card -->
+    <div class="card add-card">
+      <h3>Add New Specialty</h3>
+      <p>Create a category for consultants to list under</p>
+
+      <form (ngSubmit)="addSpecialty()" class="add-form">
+        <div class="form-group">
+          <label for="newSpecialtyName">Specialty Name</label>
+          <input
+            type="text"
+            id="newSpecialtyName"
+            name="newSpecialtyName"
+            [(ngModel)]="newSpecialtyName"
+            class="input-field"
+            placeholder="e.g. Pediatric Cardiology"
+            required
+          />
+        </div>
+
+        <button type="submit" [disabled]="isAdding" class="btn btn-primary btn-block">
+          <span *ngIf="!isAdding">+ Add Specialty</span>
+          <span *ngIf="isAdding">Adding...</span>
+        </button>
+      </form>
+
+      <div *ngIf="successMessage" class="success-banner">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
+    </div>
+
+    <!-- Specialties Table Card -->
+    <div class="card table-card">
+      <h3>Catalogue Items ({{ specialties.length }})</h3>
+
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+      </div>
+
+      <div *ngIf="!isLoading && specialties.length === 0" class="empty-state">
+        <p>No specialties configured yet.</p>
+      </div>
+
+      <div *ngIf="!isLoading && specialties.length > 0" class="specialties-list">
+        <div *ngFor="let item of specialties" class="specialty-row">
+          <!-- Viewing Mode -->
+          <ng-container *ngIf="editingId !== item.id; else editMode">
+            <span class="specialty-title">{{ item.name }}</span>
+            <div class="row-actions">
+              <button (click)="startEdit(item)" class="btn btn-secondary btn-sm">Edit</button>
+              <button (click)="deleteSpecialty(item.id)" class="btn btn-danger btn-sm">Delete</button>
+            </div>
+          </ng-container>
+
+          <!-- Editing Mode -->
+          <ng-template #editMode>
+            <input type="text" [(ngModel)]="editingName" class="input-field edit-input" />
+            <div class="row-actions">
+              <button (click)="saveEdit(item.id)" class="btn btn-primary btn-sm">Save</button>
+              <button (click)="cancelEdit()" class="btn btn-outline btn-sm">Cancel</button>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
