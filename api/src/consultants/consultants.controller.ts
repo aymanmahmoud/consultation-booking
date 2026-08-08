@@ -1,16 +1,22 @@
-import { Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put, Query, UseGuards } from '@nestjs/common';
 import { Role } from '../../generated/prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ConsultantsService } from './consultants.service';
+import { ListConsultantsQueryDto } from './dto/list-consultants-query.dto';
 import { UpdateConsultantProfileDto } from './dto/update-consultant-profile.dto';
 import { UpdateConsultantSpecialtiesDto } from './dto/update-consultant-specialties.dto';
 
 @Controller('consultants')
 export class ConsultantsController {
   constructor(private readonly consultantsService: ConsultantsService) {}
+
+  @Get()
+  findAll(@Query() query: ListConsultantsQueryDto) {
+    return this.consultantsService.findAll(query);
+  }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.consultant)

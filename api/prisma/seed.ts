@@ -51,6 +51,7 @@ async function main() {
   const consultantSeeds = [
     {
       email: 'sara.hassan@consultbook.test',
+      name: 'Sara Hassan',
       headline: 'Career coach for early-career engineers',
       bio: 'Ten years in tech recruiting, now helping engineers plan their next move.',
       price: 45.0,
@@ -58,6 +59,7 @@ async function main() {
     },
     {
       email: 'omar.farouk@consultbook.test',
+      name: 'Omar Farouk',
       headline: 'Corporate & contract law consultant',
       bio: 'Advises freelancers and small businesses on contracts and compliance.',
       price: 60.0,
@@ -65,6 +67,7 @@ async function main() {
     },
     {
       email: 'mona.said@consultbook.test',
+      name: 'Mona Said',
       headline: 'Registered dietitian & wellness counselor',
       bio: 'Evidence-based nutrition plans and one-on-one wellness coaching.',
       price: 35.0,
@@ -81,9 +84,13 @@ async function main() {
 
     const profile = await prisma.consultantProfile.upsert({
       where: { user_id: user.id },
-      update: {},
+      // Backfills `name` onto profiles created by an earlier seed run,
+      // before this field existed - other fields are left alone in case
+      // they've since been edited via PATCH /consultants/me.
+      update: { name: c.name },
       create: {
         user_id: user.id,
+        name: c.name,
         headline: c.headline,
         bio: c.bio,
         price: c.price,

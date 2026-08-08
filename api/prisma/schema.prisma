@@ -38,6 +38,7 @@ model User {
 model ConsultantProfile {
   id        String   @id @default(uuid())
   user_id   String   @unique
+  name      String?
   headline  String?
   bio       String?
   price     Decimal? @db.Decimal(10, 2)
