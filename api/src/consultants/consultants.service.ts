@@ -29,11 +29,19 @@ export class ConsultantsService {
     }
   }
 
-  async updateMySpecialties(userId: string, dto: UpdateConsultantSpecialtiesDto) {
+  // Shared by every consultant-scoped module (specialties, working hours,
+  // time off) that needs to turn "the logged-in user" into "their
+  // consultant_profiles.id" before touching child records.
+  async getMyProfileOrThrow(userId: string) {
     const profile = await this.prisma.consultantProfile.findUnique({ where: { user_id: userId } });
     if (!profile) {
       throw new NotFoundException('Consultant profile not found');
     }
+    return profile;
+  }
+
+  async updateMySpecialties(userId: string, dto: UpdateConsultantSpecialtiesDto) {
+    const profile = await this.getMyProfileOrThrow(userId);
 
     const found = await this.prisma.specialty.findMany({
       where: { id: { in: dto.specialtyIds } },
