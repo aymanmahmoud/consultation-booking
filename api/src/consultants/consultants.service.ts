@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateConsultantProfileDto } from './dto/update-consultant-profile.dto';
+import { UpdateConsultantSpecialtiesDto } from './dto/update-consultant-specialties.dto';
 
 @Injectable()
 export class ConsultantsService {
@@ -23,6 +24,35 @@ export class ConsultantsService {
       }
       throw error;
     }
+  }
+
+  async updateMySpecialties(userId: string, dto: UpdateConsultantSpecialtiesDto) {
+    const profile = await this.prisma.consultantProfile.findUnique({ where: { user_id: userId } });
+    if (!profile) {
+      throw new NotFoundException('Consultant profile not found');
+    }
+
+    const found = await this.prisma.specialty.findMany({
+      where: { id: { in: dto.specialtyIds } },
+      select: { id: true },
+    });
+    const foundIds = new Set(found.map((s) => s.id));
+    const unknownIds = dto.specialtyIds.filter((id) => !foundIds.has(id));
+    if (unknownIds.length > 0) {
+      throw new BadRequestException(`Unknown specialty id(s): ${unknownIds.join(', ')}`);
+    }
+
+    // Same replace-the-whole-set idiom as the working_hours seeding: no
+    // unique constraint to upsert against per-row, so delete everything
+    // for this consultant and recreate the desired set, atomically.
+    await this.prisma.$transaction([
+      this.prisma.consultantSpecialty.deleteMany({ where: { consultant_id: profile.id } }),
+      this.prisma.consultantSpecialty.createMany({
+        data: dto.specialtyIds.map((specialty_id) => ({ consultant_id: profile.id, specialty_id })),
+      }),
+    ]);
+
+    return this.findPublicProfile(profile.id);
   }
 
   async findPublicProfile(id: string) {

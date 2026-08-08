@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put, UseGuards } from '@nestjs/common';
 import { Role } from '../../generated/prisma/client';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { ConsultantsService } from './consultants.service';
 import { UpdateConsultantProfileDto } from './dto/update-consultant-profile.dto';
+import { UpdateConsultantSpecialtiesDto } from './dto/update-consultant-specialties.dto';
 
 @Controller('consultants')
 export class ConsultantsController {
@@ -16,6 +17,16 @@ export class ConsultantsController {
   @Patch('me')
   updateMyProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateConsultantProfileDto) {
     return this.consultantsService.updateMyProfile(user.id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.consultant)
+  @Put('me/specialties')
+  updateMySpecialties(
+    @CurrentUser() user: { id: string },
+    @Body() dto: UpdateConsultantSpecialtiesDto,
+  ) {
+    return this.consultantsService.updateMySpecialties(user.id, dto);
   }
 
   @Get(':id')
