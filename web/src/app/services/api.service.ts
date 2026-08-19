@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 export interface Specialty {
   id: string;
@@ -9,13 +9,25 @@ export interface Specialty {
 
 export interface ConsultantProfile {
   id: string;
-  user_id: string;
+  name: string | null;
   headline: string | null;
   bio: string | null;
-  price: number | null;
+  // Prisma's Decimal serializes to a JSON string, not a number - keeping
+  // it that way in transit is what avoids floating-point rounding on a
+  // money value, not a bug to "fix" by casting to number.
+  price: string | null;
   is_active: boolean;
-  user?: { email: string };
-  specialties?: { specialty: Specialty }[];
+  // The API already flattens this to Specialty[] (see
+  // ConsultantsService.toProfileWithSpecialties on the backend) - it's
+  // not the raw {specialty: Specialty}[] junction-row shape.
+  specialties?: Specialty[];
+}
+
+interface PaginatedConsultants {
+  items: ConsultantProfile[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface WorkingHourItem {
@@ -31,6 +43,13 @@ export interface TimeOffItem {
   ends_at: string;
 }
 
+interface AvailabilityResponse {
+  consultant_id: string;
+  from: string;
+  to: string;
+  slots: { starts_at: string; ends_at: string }[];
+}
+
 export interface Appointment {
   id: string;
   client_id: string;
@@ -42,7 +61,7 @@ export interface Appointment {
   cancelled_at?: string | null;
   cancelled_by?: string | null;
   created_at: string;
-  consultant?: ConsultantProfile;
+  consultant?: { name: string | null };
   client?: { email: string };
 }
 
@@ -80,19 +99,33 @@ export class ApiService {
     if (params?.search) {
       httpParams = httpParams.set('search', params.search);
     }
-    return this.http.get<ConsultantProfile[]>(`${this.baseUrl}/consultants`, { params: httpParams });
+    // GET /consultants is paginated ({items, total, page, limit}), not a
+    // bare array - unwrap it here so every existing caller (which was
+    // written against a flat array) keeps working unchanged.
+    return this.http
+      .get<PaginatedConsultants>(`${this.baseUrl}/consultants`, { params: httpParams })
+      .pipe(map((res) => res.items));
   }
 
   getConsultantById(id: string): Observable<ConsultantProfile> {
     return this.http.get<ConsultantProfile>(`${this.baseUrl}/consultants/${id}`);
   }
 
-  updateMyProfile(payload: { headline?: string; bio?: string; price?: number }): Observable<ConsultantProfile> {
+  getMyConsultantProfile(): Observable<ConsultantProfile> {
+    return this.http.get<ConsultantProfile>(`${this.baseUrl}/consultants/me`);
+  }
+
+  updateMyProfile(payload: {
+    name?: string;
+    headline?: string;
+    bio?: string;
+    price?: number;
+  }): Observable<ConsultantProfile> {
     return this.http.patch<ConsultantProfile>(`${this.baseUrl}/consultants/me`, payload);
   }
 
-  updateMySpecialties(specialtyIds: string[]): Observable<{ id: string; specialty_id: string }[]> {
-    return this.http.put<{ id: string; specialty_id: string }[]>(`${this.baseUrl}/consultants/me/specialties`, {
+  updateMySpecialties(specialtyIds: string[]): Observable<ConsultantProfile> {
+    return this.http.put<ConsultantProfile>(`${this.baseUrl}/consultants/me/specialties`, {
       specialtyIds,
     });
   }
@@ -123,7 +156,12 @@ export class ApiService {
   // Availability & Appointments
   getConsultantAvailability(id: string, from: string, to: string): Observable<string[]> {
     const params = new HttpParams().set('from', from).set('to', to);
-    return this.http.get<string[]>(`${this.baseUrl}/consultants/${id}/availability`, { params });
+    // The API returns {consultant_id, from, to, slots: [{starts_at, ends_at}]},
+    // not a bare array - unwrap to just the start times, which is the
+    // shape every existing caller (slot picker) already expects.
+    return this.http
+      .get<AvailabilityResponse>(`${this.baseUrl}/consultants/${id}/availability`, { params })
+      .pipe(map((res) => res.slots.map((slot) => slot.starts_at)));
   }
 
   bookAppointment(consultant_id: string, starts_at: string): Observable<Appointment> {

@@ -11,10 +11,10 @@
       <div class="profile-card card">
         <div class="profile-header">
           <div class="avatar-large">
-            {{ consultant.user?.email?.[0]?.toUpperCase() || 'C' }}
+            {{ (consultant.name?.[0] || 'C') | uppercase }}
           </div>
           <div>
-            <h2>{{ consultant.user?.email?.split('@')?.[0] | titlecase }}</h2>
+            <h2>{{ consultant.name || 'Consultant' }}</h2>
             <span class="price-tag">${{ consultant.price || 0 }} / 60-min session</span>
           </div>
         </div>
@@ -33,7 +33,7 @@
           <h4>Specialties</h4>
           <div class="specialties-flex">
             <span *ngFor="let item of consultant.specialties" class="badge badge-primary">
-              {{ item.specialty.name }}
+              {{ item.name }}
             </span>
           </div>
         </div>

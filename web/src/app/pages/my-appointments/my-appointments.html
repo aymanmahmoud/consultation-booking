@@ -77,7 +77,12 @@
       <div class="apt-body">
         <div class="info-block" *ngIf="apt.consultant">
           <span class="label">Consultant:</span>
-          <strong>{{ apt.consultant.user?.email || 'Consultant' }}</strong>
+          <strong>{{ apt.consultant.name || 'Consultant' }}</strong>
+        </div>
+
+        <div class="info-block" *ngIf="apt.client">
+          <span class="label">Client:</span>
+          <strong>{{ apt.client.email }}</strong>
         </div>
 
         <div class="info-block" *ngIf="apt.meeting_link">

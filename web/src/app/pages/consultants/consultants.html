@@ -62,10 +62,10 @@
       <div *ngFor="let c of consultants" class="consultant-card card animate-fade-in">
         <div class="card-header">
           <div class="consultant-avatar">
-            {{ c.user?.email?.[0]?.toUpperCase() || 'C' }}
+            {{ (c.name?.[0] || 'C') | uppercase }}
           </div>
           <div class="consultant-basic">
-            <h3 class="consultant-name">{{ c.user?.email?.split('@')?.[0] | titlecase }}</h3>
+            <h3 class="consultant-name">{{ c.name || 'Consultant' }}</h3>
             <span class="price-tag">${{ c.price || 0 }}/hr</span>
           </div>
         </div>
@@ -75,7 +75,7 @@
 
         <div class="specialties-list">
           <span *ngFor="let item of c.specialties" class="badge badge-primary">
-            {{ item.specialty.name }}
+            {{ item.name }}
           </span>
         </div>
 

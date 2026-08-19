@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Specialty } from '../../services/api.service';
-import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-consultant-profile',
@@ -12,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './consultant-profile.scss',
 })
 export class ConsultantProfileComponent implements OnInit {
+  name = '';
   headline = '';
   bio = '';
   price: number | null = 45;
@@ -24,10 +24,7 @@ export class ConsultantProfileComponent implements OnInit {
   successMessage = '';
   errorMessage = '';
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
+  constructor(private apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -40,25 +37,22 @@ export class ConsultantProfileComponent implements OnInit {
       next: (specs) => {
         this.allSpecialties = specs;
 
-        // Fetch consultant profile
-        const user = this.authService.currentUser();
-        if (user) {
-          this.apiService.getConsultants().subscribe({
-            next: (list) => {
-              const myProf = list.find((c) => c.user_id === user.id);
-              if (myProf) {
-                this.headline = myProf.headline || '';
-                this.bio = myProf.bio || '';
-                this.price = myProf.price;
-                this.selectedSpecialtyIds = myProf.specialties?.map((s) => s.specialty.id) || [];
-              }
-              this.isLoading = false;
-            },
-            error: () => (this.isLoading = false),
-          });
-        } else {
-          this.isLoading = false;
-        }
+        // GET /consultants/me returns exactly this user's own profile -
+        // scanning the public GET /consultants list and matching by
+        // user_id (the previous approach) was wrong twice over: that field
+        // doesn't exist on the response, and the public list is paginated,
+        // so a consultant not on page 1 would never find themselves.
+        this.apiService.getMyConsultantProfile().subscribe({
+          next: (myProf) => {
+            this.name = myProf.name || '';
+            this.headline = myProf.headline || '';
+            this.bio = myProf.bio || '';
+            this.price = myProf.price !== null ? Number(myProf.price) : null;
+            this.selectedSpecialtyIds = myProf.specialties?.map((s) => s.id) || [];
+            this.isLoading = false;
+          },
+          error: () => (this.isLoading = false),
+        });
       },
       error: () => (this.isLoading = false),
     });
@@ -84,6 +78,7 @@ export class ConsultantProfileComponent implements OnInit {
     // Update basic profile fields
     this.apiService
       .updateMyProfile({
+        name: this.name,
         headline: this.headline,
         bio: this.bio,
         price: this.price || 0,
