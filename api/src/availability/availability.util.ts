@@ -67,6 +67,22 @@ export function cairoWallTimeToUtc(dateStr: string, hour: number): Date {
   return instant;
 }
 
+/**
+ * The inverse of cairoWallTimeToUtc: given a UTC instant, what Cairo
+ * calendar date does it fall on? Used to ask "is this the slot the client
+ * thinks it is" - the appointments module reuses computeAvailableSlots for
+ * a single day rather than re-implementing the same working-hours/time-off
+ * logic a second time.
+ */
+export function cairoDateStringOf(instant: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: CAIRO_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(instant);
+}
+
 function dayOfWeekOf(dateStr: string): number {
   const [year, month, day] = dateStr.split('-').map(Number);
   return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
