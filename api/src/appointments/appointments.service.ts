@@ -127,16 +127,22 @@ export class AppointmentsService {
           ? { starts_at: { lt: new Date() } }
           : {};
 
+    // Include the OTHER party's display info - a client needs to know
+    // which consultant they're meeting, a consultant needs to know which
+    // client. Without this the appointment row alone only carries opaque
+    // foreign key ids.
     if (user.role === Role.consultant) {
       const profile = await this.consultantsService.getMyProfileOrThrow(user.id);
       return this.prisma.appointment.findMany({
         where: { consultant_id: profile.id, ...timeFilter },
+        include: { client: { select: { email: true } } },
         orderBy: { starts_at: query.when === 'past' ? 'desc' : 'asc' },
       });
     }
 
     return this.prisma.appointment.findMany({
       where: { client_id: user.id, ...timeFilter },
+      include: { consultant: { select: { name: true } } },
       orderBy: { starts_at: query.when === 'past' ? 'desc' : 'asc' },
     });
   }

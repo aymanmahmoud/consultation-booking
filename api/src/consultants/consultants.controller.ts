@@ -18,6 +18,16 @@ export class ConsultantsController {
     return this.consultantsService.findAll(query);
   }
 
+  // Must be declared before @Get(':id') - Nest/Express resolves routes of
+  // the same length and HTTP method in registration order, so ':id' would
+  // otherwise swallow a request for literal "/consultants/me" first.
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.consultant)
+  @Get('me')
+  findMyProfile(@CurrentUser() user: { id: string }) {
+    return this.consultantsService.findMyProfile(user.id);
+  }
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.consultant)
   @Patch('me')

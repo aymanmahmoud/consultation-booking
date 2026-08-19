@@ -66,6 +66,24 @@ export class ConsultantsService {
     return this.findPublicProfile(profile.id);
   }
 
+  // Distinct from getMyProfileOrThrow (which returns the raw row for
+  // internal use by other consultant-scoped services) - this is the
+  // client-facing shape, with specialties included, for prefilling the
+  // profile-edit form. There was previously no way to fetch "my own full
+  // profile" at all; the frontend was scanning the public paginated list
+  // instead, which is both slower and silently wrong for a consultant not
+  // on page 1.
+  async findMyProfile(userId: string) {
+    const profile = await this.prisma.consultantProfile.findUnique({
+      where: { user_id: userId },
+      include: SPECIALTIES_INCLUDE,
+    });
+    if (!profile) {
+      throw new NotFoundException('Consultant profile not found');
+    }
+    return this.toProfileWithSpecialties(profile);
+  }
+
   async findPublicProfile(id: string) {
     const profile = await this.prisma.consultantProfile.findUnique({
       where: { id },
