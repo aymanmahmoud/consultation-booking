@@ -1,15 +1,20 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { AppointmentStatus, Prisma } from '../../generated/prisma/client';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { AppointmentStatus, Prisma, Role } from '../../generated/prisma/client';
 import { cairoDateStringOf, computeAvailableSlots } from '../availability/availability.util';
+import { ConsultantsService } from '../consultants/consultants.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
+import { ListAppointmentsQueryDto } from './dto/list-appointments-query.dto';
 
 const HOUR_MS = 3_600_000;
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly consultantsService: ConsultantsService,
+  ) {}
 
   async book(clientId: string, dto: CreateAppointmentDto) {
     const startsAt = dto.starts_at;
@@ -107,5 +112,65 @@ export class AppointmentsService {
       }
       throw error;
     }
+  }
+
+  // F-18/F-19: "own bookings" means something different depending on which
+  // side of the appointment this user is on - a client's bookings are
+  // rows where they're the client, a consultant's are rows where they're
+  // the consultant. RolesGuard already rejects anyone who isn't one of
+  // those two roles before this runs.
+  async findMine(user: { id: string; role: Role }, query: ListAppointmentsQueryDto) {
+    const timeFilter =
+      query.when === 'upcoming'
+        ? { starts_at: { gte: new Date() } }
+        : query.when === 'past'
+          ? { starts_at: { lt: new Date() } }
+          : {};
+
+    if (user.role === Role.consultant) {
+      const profile = await this.consultantsService.getMyProfileOrThrow(user.id);
+      return this.prisma.appointment.findMany({
+        where: { consultant_id: profile.id, ...timeFilter },
+        orderBy: { starts_at: query.when === 'past' ? 'desc' : 'asc' },
+      });
+    }
+
+    return this.prisma.appointment.findMany({
+      where: { client_id: user.id, ...timeFilter },
+      orderBy: { starts_at: query.when === 'past' ? 'desc' : 'asc' },
+    });
+  }
+
+  async cancel(userId: string, appointmentId: string) {
+    const appointment = await this.prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { consultant: true },
+    });
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found');
+    }
+
+    // BR-7: either the booking client or the consultant may cancel -
+    // ownership, not role, is what determines this. A client cancelling
+    // some other client's appointment must be rejected the same as a
+    // stranger would be, even though their role passed the guard.
+    const isBookingClient = appointment.client_id === userId;
+    const isOwningConsultant = appointment.consultant.user_id === userId;
+    if (!isBookingClient && !isOwningConsultant) {
+      throw new ForbiddenException('You are not authorized to cancel this appointment');
+    }
+
+    if (appointment.status === AppointmentStatus.cancelled) {
+      throw new ConflictException('This appointment is already cancelled');
+    }
+
+    // BR-7/BR-8: flipping status away from 'confirmed' is what makes the
+    // slot reusable - the partial unique index only constrains confirmed
+    // rows, so this alone is sufficient, no separate "free up the slot"
+    // step exists or is needed.
+    return this.prisma.appointment.update({
+      where: { id: appointmentId },
+      data: { status: AppointmentStatus.cancelled, cancelled_at: new Date(), cancelled_by: userId },
+    });
   }
 }

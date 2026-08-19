@@ -9,5 +9,6 @@ import { WorkingHoursService } from './working-hours.service';
 @Module({
   controllers: [ConsultantsController, WorkingHoursController, TimeOffController],
   providers: [ConsultantsService, WorkingHoursService, TimeOffService],
+  exports: [ConsultantsService],
 })
 export class ConsultantsModule {}
