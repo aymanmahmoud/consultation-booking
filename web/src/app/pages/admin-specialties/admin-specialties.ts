@@ -29,6 +29,7 @@ export class AdminSpecialtiesComponent implements OnInit {
 
   loadSpecialties(): void {
     this.isLoading = true;
+    this.errorMessage = '';
     this.apiService.getSpecialties().subscribe({
       next: (data) => {
         this.specialties = data;
@@ -37,6 +38,7 @@ export class AdminSpecialtiesComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load specialties', err);
         this.isLoading = false;
+        this.errorMessage = 'Failed to load specialties. Please try again.';
       },
     });
   }

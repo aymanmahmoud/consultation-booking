@@ -16,6 +16,7 @@ export class MyAppointmentsComponent implements OnInit {
   isLoading = true;
   cancellingId: string | null = null;
   cancelError = '';
+  loadError = '';
 
   constructor(private apiService: ApiService) {}
 
@@ -25,6 +26,7 @@ export class MyAppointmentsComponent implements OnInit {
 
   loadAppointments(): void {
     this.isLoading = true;
+    this.loadError = '';
     this.apiService.getMyAppointments().subscribe({
       next: (data) => {
         this.appointments = data;
@@ -33,6 +35,7 @@ export class MyAppointmentsComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load appointments', err);
         this.isLoading = false;
+        this.loadError = 'Failed to load your appointments. Please try again.';
       },
     });
   }

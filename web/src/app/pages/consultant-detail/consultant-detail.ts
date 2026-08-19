@@ -23,6 +23,8 @@ export class ConsultantDetailComponent implements OnInit {
   isLoadingSlots = false;
   isBooking = false;
   bookingError = '';
+  loadError = '';
+  slotsError = '';
   confirmedAppointment: Appointment | null = null;
 
   // Next 7 days selector
@@ -64,6 +66,8 @@ export class ConsultantDetailComponent implements OnInit {
   }
 
   loadConsultant(): void {
+    this.isLoading = true;
+    this.loadError = '';
     this.apiService.getConsultantById(this.id).subscribe({
       next: (data) => {
         this.consultant = data;
@@ -72,6 +76,10 @@ export class ConsultantDetailComponent implements OnInit {
       error: (err) => {
         console.error('Failed to fetch consultant details', err);
         this.isLoading = false;
+        this.loadError =
+          err.status === 404
+            ? 'This consultant could not be found.'
+            : 'Failed to load this consultant. Please try again.';
       },
     });
   }
@@ -80,6 +88,7 @@ export class ConsultantDetailComponent implements OnInit {
     this.selectedDate = dateIso;
     this.selectedSlot = null;
     this.isLoadingSlots = true;
+    this.slotsError = '';
 
     // Availability for 1 day: from=dateIso to=dateIso
     this.apiService.getConsultantAvailability(this.id, dateIso, dateIso).subscribe({
@@ -90,6 +99,7 @@ export class ConsultantDetailComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load slots', err);
         this.isLoadingSlots = false;
+        this.slotsError = 'Failed to load available slots. Please try again.';
       },
     });
   }

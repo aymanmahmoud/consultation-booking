@@ -17,6 +17,7 @@ export class ConsultantsComponent implements OnInit {
   selectedSpecialtyId: string | null = null;
   searchQuery = '';
   isLoading = true;
+  loadError = '';
 
   constructor(private apiService: ApiService) {}
 
@@ -34,6 +35,7 @@ export class ConsultantsComponent implements OnInit {
 
   loadConsultants(): void {
     this.isLoading = true;
+    this.loadError = '';
     this.apiService
       .getConsultants({
         specialtyId: this.selectedSpecialtyId || undefined,
@@ -47,6 +49,7 @@ export class ConsultantsComponent implements OnInit {
         error: (err) => {
           console.error('Failed to load consultants', err);
           this.isLoading = false;
+          this.loadError = 'Failed to load consultants. Please try again.';
         },
       });
   }

@@ -56,6 +56,7 @@ export class ConsultantScheduleComponent implements OnInit {
 
   loadWorkingHours(): void {
     this.isLoadingHours = true;
+    this.hoursError = '';
     this.apiService.getMyWorkingHours().subscribe({
       next: (existing) => {
         if (existing && existing.length > 0) {
@@ -75,6 +76,7 @@ export class ConsultantScheduleComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load working hours', err);
         this.isLoadingHours = false;
+        this.hoursError = 'Failed to load your working hours. Please try again.';
       },
     });
   }
@@ -106,6 +108,7 @@ export class ConsultantScheduleComponent implements OnInit {
 
   loadTimeOff(): void {
     this.isLoadingTimeOff = true;
+    this.timeOffError = '';
     this.apiService.getMyTimeOff().subscribe({
       next: (list) => {
         this.timeOffList = list;
@@ -114,6 +117,7 @@ export class ConsultantScheduleComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load time off', err);
         this.isLoadingTimeOff = false;
+        this.timeOffError = 'Failed to load your time off entries. Please try again.';
       },
     });
   }
@@ -145,9 +149,13 @@ export class ConsultantScheduleComponent implements OnInit {
   }
 
   deleteTimeOff(id: string): void {
+    this.timeOffError = '';
     this.apiService.deleteTimeOff(id).subscribe({
       next: () => this.loadTimeOff(),
-      error: (err) => console.error('Failed to delete time off', err),
+      error: (err) => {
+        console.error('Failed to delete time off', err);
+        this.timeOffError = err.error?.message || 'Failed to remove this time off block.';
+      },
     });
   }
 }

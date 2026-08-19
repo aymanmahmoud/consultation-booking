@@ -50,15 +50,23 @@
       <p>Finding available consultants...</p>
     </div>
 
+    <!-- Error State -->
+    <div *ngIf="!isLoading && loadError" class="empty-state card">
+      <div class="empty-icon">⚠️</div>
+      <h3>Something went wrong</h3>
+      <p>{{ loadError }}</p>
+      <button (click)="loadConsultants()" class="btn btn-primary" style="margin-top: 16px;">Retry</button>
+    </div>
+
     <!-- Empty State -->
-    <div *ngIf="!isLoading && consultants.length === 0" class="empty-state card">
+    <div *ngIf="!isLoading && !loadError && consultants.length === 0" class="empty-state card">
       <div class="empty-icon">🔍</div>
       <h3>No consultants found</h3>
       <p>Try searching for a different keyword or specialty</p>
     </div>
 
     <!-- Consultants Grid -->
-    <div *ngIf="!isLoading && consultants.length > 0" class="consultants-grid">
+    <div *ngIf="!isLoading && !loadError && consultants.length > 0" class="consultants-grid">
       <div *ngFor="let c of consultants" class="consultant-card card animate-fade-in">
         <div class="card-header">
           <div class="consultant-avatar">

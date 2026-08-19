@@ -23,6 +23,7 @@ export class ConsultantProfileComponent implements OnInit {
   isSaving = false;
   successMessage = '';
   errorMessage = '';
+  loadError = '';
 
   constructor(private apiService: ApiService) {}
 
@@ -32,6 +33,7 @@ export class ConsultantProfileComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
+    this.loadError = '';
 
     this.apiService.getSpecialties().subscribe({
       next: (specs) => {
@@ -51,10 +53,16 @@ export class ConsultantProfileComponent implements OnInit {
             this.selectedSpecialtyIds = myProf.specialties?.map((s) => s.id) || [];
             this.isLoading = false;
           },
-          error: () => (this.isLoading = false),
+          error: () => {
+            this.isLoading = false;
+            this.loadError = 'Failed to load your profile. Please try again.';
+          },
         });
       },
-      error: () => (this.isLoading = false),
+      error: () => {
+        this.isLoading = false;
+        this.loadError = 'Failed to load your profile. Please try again.';
+      },
     });
   }
 

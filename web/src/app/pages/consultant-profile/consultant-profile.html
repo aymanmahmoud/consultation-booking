@@ -13,7 +13,12 @@
       <p>Loading your profile...</p>
     </div>
 
-    <form *ngIf="!isLoading" (ngSubmit)="onSubmit()" class="profile-form">
+    <div *ngIf="!isLoading && loadError" class="error-banner">
+      {{ loadError }}
+      <button type="button" (click)="loadData()" class="btn btn-primary btn-sm" style="margin-left: 12px;">Retry</button>
+    </div>
+
+    <form *ngIf="!isLoading && !loadError" (ngSubmit)="onSubmit()" class="profile-form">
       <div class="form-group">
         <label for="name">Display Name</label>
         <input

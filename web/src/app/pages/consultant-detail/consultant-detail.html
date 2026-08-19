@@ -5,6 +5,14 @@
     <p>Loading consultant profile...</p>
   </div>
 
+  <!-- Error State -->
+  <div *ngIf="!isLoading && loadError" class="empty-state card">
+    <div class="empty-icon">⚠️</div>
+    <h3>Something went wrong</h3>
+    <p>{{ loadError }}</p>
+    <a routerLink="/consultants" class="btn btn-primary" style="margin-top: 16px;">Back to Consultants</a>
+  </div>
+
   <ng-container *ngIf="!isLoading && consultant">
     <div class="detail-layout">
       <!-- Left Column: Consultant Profile Card -->
@@ -64,12 +72,19 @@
             <p>Fetching available slots...</p>
           </div>
 
-          <div *ngIf="!isLoadingSlots && availableSlots.length === 0" class="no-slots">
+          <div *ngIf="!isLoadingSlots && slotsError" class="no-slots">
+            <p>⚠️ {{ slotsError }}</p>
+            <span class="subtext">
+              <a (click)="loadAvailability(selectedDate)" style="cursor: pointer;">Try again</a>
+            </span>
+          </div>
+
+          <div *ngIf="!isLoadingSlots && !slotsError && availableSlots.length === 0" class="no-slots">
             <p>📅 No available time slots on this date.</p>
             <span class="subtext">Please select another date above.</span>
           </div>
 
-          <div *ngIf="!isLoadingSlots && availableSlots.length > 0" class="slots-grid">
+          <div *ngIf="!isLoadingSlots && !slotsError && availableSlots.length > 0" class="slots-grid">
             <button
               *ngFor="let slot of availableSlots"
               class="slot-btn"

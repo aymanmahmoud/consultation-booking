@@ -42,11 +42,11 @@
         <div class="spinner"></div>
       </div>
 
-      <div *ngIf="!isLoading && specialties.length === 0" class="empty-state">
+      <div *ngIf="!isLoading && !errorMessage && specialties.length === 0" class="empty-state">
         <p>No specialties configured yet.</p>
       </div>
 
-      <div *ngIf="!isLoading && specialties.length > 0" class="specialties-list">
+      <div *ngIf="!isLoading && !errorMessage && specialties.length > 0" class="specialties-list">
         <div *ngFor="let item of specialties" class="specialty-row">
           <!-- Viewing Mode -->
           <ng-container *ngIf="editingId !== item.id; else editMode">
